@@ -1,0 +1,38 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m src.data.prepare
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: e9312f039663dcbc363e03dad8a1bf4c.dir
+      size: 2770778836
+      nfiles: 10016
+    - path: src/data/prepare.py
+      hash: md5
+      md5: 9cc9a146b592b5331f39beaff0e9c5e7
+      size: 4000
+    params:
+      params.yaml:
+        data:
+          raw_dir: data/raw
+          processed_dir: data/processed
+          metadata_csv: HAM10000_metadata.csv
+          resize: 384
+          test_size: 0.15
+          val_size: 0.15
+        seed: 42
+    outs:
+    - path: data/processed/images
+      hash: md5
+      md5: 596a7726fca7165a70bc5b60c100e301.dir
+      size: 509923455
+      nfiles: 10015
+    - path: data/processed/splits.csv
+      hash: md5
+      md5: 328af771a80e567ab359d4bf968bd14e
+      size: 889497
+    - path: data/processed/stats.json
+      hash: md5
+      md5: 4a8779383d41f25cfd32b7bbb91ab76d
+      size: 610
