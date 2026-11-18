@@ -14,13 +14,91 @@ Navigateur ──► Frontend React (nginx :3000) ──/api──► FastAPI (:
 
 ---
 
-## 1. Démarrage rapide (1 commande)
+## 0. Démarrage pour l'équipe
 
-Prérequis : Docker, et les artefacts du modèle dans `models/` (`dvc pull`, ou entraînement, voir §3).
+| Ressource | URL |
+|---|---|
+| Code (GitHub) | https://github.com/kaouech-rahim/ham10000-skin-lesion |
+| Données et modèles (DagsHub, remote DVC) | https://dagshub.com/kaouech-rahim/ham10000-skin-lesion |
+| Historique des runs (MLflow sur DagsHub) | https://dagshub.com/kaouech-rahim/ham10000-skin-lesion.mlflow |
+
+### 0.1 Prérequis
+
+- Git
+- Python 3.11
+- Docker Desktop, **démarré**
+- DVC avec le support S3 : `pip install "dvc[s3]"`
+- Être **collaborateur du dépôt DagsHub** : demandez une invitation à `kaouech-rahim`.
+
+### 0.2 Récupérer le code
 
 ```bash
-dvc pull                       # récupère data/ et models/ depuis le remote DVC
-docker compose up --build      # (ou docker-compose up --build)
+git clone https://github.com/kaouech-rahim/ham10000-skin-lesion.git
+cd ham10000-skin-lesion
+```
+
+### 0.3 Configurer le remote DVC avec VOS identifiants DagsHub
+
+Sur DagsHub, ouvrez *Remote → Data → DVC*, puis copiez votre token. Chaque membre utilise **son propre** token.
+
+```bash
+dvc remote modify origin --local access_key_id <votre_token_dagshub>
+dvc remote modify origin --local secret_access_key <votre_token_dagshub>
+```
+
+L'option `--local` écrit dans `.dvc/config.local`, qui est ignoré par Git. **Ne commitez jamais votre token.**
+
+### 0.4 Récupérer le modèle
+
+```bash
+dvc pull models/model.onnx.dvc models/convnext-focal.pt.dvc
+```
+
+Cette commande télécharge environ 210 Mo : `model.onnx` (le modèle servi par l'API) et `convnext-focal.pt` (le checkpoint PyTorch). `models/metadata.json` est déjà dans Git.
+
+> Un `dvc pull` **sans argument** télécharge en plus tout le dataset (environ 7 Go : `data/raw` et `data/processed`). Ce n'est nécessaire que pour **réentraîner** le modèle.
+
+### 0.5 Lancer l'application
+
+```bash
+docker compose up --build
+```
+
+Le premier build prend plusieurs minutes, le temps de télécharger les images Python, Node, nginx et MLflow.
+
+| Service | URL |
+|---|---|
+| Application web | http://localhost:3000 |
+| API + Swagger | http://localhost:8000/docs |
+| MLflow local | http://localhost:5000 |
+
+> Le MLflow local du port 5000 démarre **vide** : il ne contient pas les runs d'entraînement. L'historique complet des runs est sur DagsHub (lien MLflow ci-dessus).
+
+### 0.6 Vérifier que tout fonctionne
+
+1. http://localhost:8000/health renvoie `"status": "ok"` et `"model_loaded": true`.
+2. Sur http://localhost:3000, le panneau du modèle affiche l'architecture `convnext_tiny`.
+3. Choisissez une image dans la **galerie d'exemples** (ou déposez un JPG). Vous devez obtenir les probabilités des 7 classes **et** la carte Grad-CAM.
+
+### 0.7 Problèmes fréquents
+
+| Symptôme | Cause | Solution |
+|---|---|---|
+| `Cannot connect to the Docker daemon` / `error during connect` | Docker Desktop n'est pas lancé | Démarrer Docker Desktop, attendre « Engine running », puis relancer. |
+| `Bind for 0.0.0.0:3000 failed: port is already allocated` (ou 8000, 5000) | Un autre programme utilise le port | Trouver le processus (`netstat -ano \| findstr :3000` sous Windows, `lsof -i :3000` sous macOS/Linux) et l'arrêter, ou changer le port à gauche dans `docker-compose.yml` (ex. `"3001:80"`). |
+| `dvc pull` : `403 Forbidden`, `Unable to locate credentials` ou `access denied` | Identifiants DagsHub absents ou invalides, ou vous n'êtes pas collaborateur | Refaire l'étape 0.3 avec votre token, et vérifier votre invitation sur DagsHub. |
+| `/health` renvoie `"degraded"`, les prédictions renvoient `503` | `models/model.onnx` est absent : `dvc pull` n'a pas été fait | Faire l'étape 0.4, puis `docker compose restart backend`. |
+| Le build est très lent ou semble bloqué | Le premier téléchargement des images Docker est long | Patienter. `docker compose --progress plain up --build` affiche l'avancement. |
+
+---
+
+## 1. Démarrage rapide (1 commande)
+
+Prérequis : Docker, et le modèle dans `models/`. Voir le §0 pour la configuration complète.
+
+```bash
+dvc pull models/model.onnx.dvc   # récupère le modèle servi par l'API
+docker compose up --build        # (ou docker-compose up --build)
 ```
 
 | Service | URL |
@@ -74,16 +152,32 @@ make data            # kaggle datasets download -d kmader/skin-cancer-mnist-ham1
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-dvc repro            # prepare -> train -> evaluate  (ou : make prepare train evaluate)
+dvc pull             # dataset complet (~7 Go)
+dvc repro            # stage DVC « prepare »
+make train evaluate  # entraînement + export ONNX (ou : make pipeline)
 ```
 
-| Étape DVC | Script | Sorties |
+| Étape | Commande | Sorties |
 |---|---|---|
-| `prepare` | `src/data/prepare.py` | `data/processed/{images,splits.csv,stats.json}` |
+| `prepare` (stage DVC, `dvc.yaml`) | `src/data/prepare.py` | `data/processed/{images,splits.csv,stats.json}` |
 | `train` | `src/models/train.py` | `models/best.pt`, `train_metrics.json`, run MLflow |
 | `evaluate` | `src/models/evaluate.py` | `model.onnx`, `model_fp16.onnx`, `model_int8.onnx`, `metadata.json`, `test_metrics.json`, version du Model Registry |
 
-`dvc metrics show`, `dvc params diff` et `dvc exp run -S train.loss=ce` permettent de comparer les expériences.
+L'entraînement se fait sur Colab/Kaggle (GPU) et n'est donc plus un stage DVC. Le **modèle final** est versionné directement avec `dvc add` :
+- `models/model.onnx.dvc` : modèle servi par l'API ;
+- `models/convnext-focal.pt.dvc` : checkpoint ConvNeXt-Tiny + Focal Loss.
+
+Les checkpoints des autres expériences ne sont pas versionnés.
+
+Pour publier un nouveau modèle :
+
+```bash
+dvc add models/model.onnx models/convnext-focal.pt
+dvc push                                  # AVANT le git push
+git add models/*.dvc models/metadata.json models/*_metrics.json
+```
+
+`dvc metrics show` et `dvc params diff` permettent de comparer les versions.
 
 ### Stratégie d'entraînement (`params.yaml`)
 
@@ -120,13 +214,19 @@ Ces runs fournissent directement le tableau « Baseline vs modèle avancé » du
 ### Entraîner sur Kaggle / Colab
 
 ```bash
-!git clone https://github.com/<vous>/<repo>.git && cd <repo>
+!git clone https://github.com/kaouech-rahim/ham10000-skin-lesion.git && cd ham10000-skin-lesion
 !pip install -q -r requirements.txt
-# Tracking distant (ex. DagsHub, qui offre MLflow + remote DVC gratuits) :
-%env MLFLOW_TRACKING_URI=https://dagshub.com/<user>/<repo>.mlflow
-%env MLFLOW_TRACKING_USERNAME=<user>
-%env MLFLOW_TRACKING_PASSWORD=<token>
-!dvc pull && dvc repro && dvc push
+# Tracking distant sur DagsHub (MLflow + remote DVC) :
+%env MLFLOW_TRACKING_URI=https://dagshub.com/kaouech-rahim/ham10000-skin-lesion.mlflow
+%env MLFLOW_TRACKING_USERNAME=<votre_user_dagshub>
+!dvc pull && dvc repro
+```
+
+Ne mettez jamais le token en clair dans le notebook. Saisissez-le au moment de l'exécution :
+
+```python
+import os, getpass
+os.environ["MLFLOW_TRACKING_PASSWORD"] = getpass.getpass("Token DagsHub : ")
 ```
 
 Sans serveur distant, MLflow écrit dans `./mlruns`. Il suffit alors de télécharger ce dossier et de lancer `mlflow ui`.
@@ -199,7 +299,7 @@ curl -F file=@lesion.jpg "http://localhost:8000/predict/visualize" -o gradcam.pn
 Stack : Vite, React 18 et Tailwind CSS v4.
 - **3 modes d'entrée :**
   - glisser-déposer ;
-  - galerie d'exemples du jeu de test (`make samples`), avec affichage de la vérité terrain ;
+  - galerie d'exemples, avec affichage de la vérité terrain ;
   - **webcam**, en capture unique ou en **inférence continue**.
 - **Résultats :**
   - **barres de probabilités animées**, rouges pour les classes malignes ;
@@ -210,6 +310,10 @@ Stack : Vite, React 18 et Tailwind CSS v4.
 ```bash
 cd frontend && npm install && npm run dev     # http://localhost:5173 (proxy /api -> :8000)
 ```
+
+**Images de la galerie.** `frontend/public/samples/` contient **14 images du jeu de TEST HAM10000** (2 par classe), commitées dans Git pour que la galerie fonctionne dès le clone. Elles ne servent jamais à l'entraînement. Elles sont régénérées par `make samples` (`python -m src.data.export_samples --per-class 2`).
+
+Ces images sont distribuées sous licence **[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)** (usage non commercial, attribution obligatoire). Source : Tschandl P., Rosendahl C., Kittler H. *The HAM10000 dataset, a large collection of multi-source dermatoscopic images of common pigmented skin lesions*. Sci. Data 5, 180161 (2018). https://doi.org/10.1038/sdata.2018.161
 
 ---
 
@@ -245,8 +349,8 @@ src/
 tests/               tests du code ML
 backend/             FastAPI : app/{main,schemas,inference,visualization,config}.py, tests/, Dockerfile
 frontend/            React : src/{components,services/api.js,App.jsx}, Dockerfile, nginx.conf
-models/              artefacts (DVC) : best.pt, model*.onnx, metadata.json
-dvc.yaml, params.yaml, docker-compose.yml, Makefile
+models/              model.onnx.dvc, convnext-focal.pt.dvc (DVC) ; metadata.json, *_metrics.json (Git)
+dvc.yaml (stage prepare), params.yaml, docker-compose.yml, Makefile, .gitattributes
 ```
 
 ## 8. Répartition des rôles (trinôme)
