@@ -32,6 +32,9 @@ pytest-*.xml
 frontend/node_modules/
 frontend/dist/
 frontend/public/samples/*.jpg
+# Exception : 14 images du jeu de TEST HAM10000 (CC BY-NC 4.0) pour la galerie
+# d'exemples, afin qu'elle fonctionne dès le git clone (~700 Ko au total).
+!frontend/public/samples/*.jpg
 
 # Divers
 .env
