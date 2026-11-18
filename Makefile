@@ -19,8 +19,11 @@ train:           ## Modèle avancé (params.yaml)
 evaluate:        ## Test + export ONNX FP32/FP16/INT8 + Model Registry
 	python -m src.models.evaluate
 
-pipeline:        ## Pipeline DVC complet (prepare -> train -> evaluate)
+pipeline:        ## prepare (DVC) -> train -> evaluate, puis versionne le modèle final
 	dvc repro
+	python -m src.models.train
+	python -m src.models.evaluate
+	dvc add models/model.onnx
 
 samples:         ## Copie des images de test dans la galerie du frontend
 	python -m src.data.export_samples --per-class 2

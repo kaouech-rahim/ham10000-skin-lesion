@@ -8,6 +8,9 @@
 !/models/metadata.json
 !/models/*_metrics.json
 !/models/run_id.txt
+# Pointeurs DVC du modèle final (model.onnx.dvc, convnext-focal.pt.dvc)
+!/models/*.dvc
+!/models/.gitignore
 mlruns/
 mlflow_data/
 mlflow.db

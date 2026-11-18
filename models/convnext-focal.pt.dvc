@@ -1,0 +1,5 @@
+outs:
+- md5: dfe6efd8eac5b16cb7607537c23e0b15
+  size: 111361887
+  hash: md5
+  path: convnext-focal.pt
