@@ -1,0 +1,15 @@
+# Fins de ligne LF forcées (même sous Windows avec core.autocrlf=true).
+
+# Métriques DVC (cache: false) : leur hash md5 est enregistré dans dvc.lock ;
+# une conversion CRLF les ferait apparaître « modified » dans `dvc status`.
+models/*.json             text eol=lf
+models/run_id.txt         text eol=lf
+data/processed/stats.json text eol=lf
+
+# Fichiers exécutés dans les conteneurs Linux : un CRLF casse les scripts
+# (« /bin/sh^M: bad interpreter ») et peut perturber nginx.
+*.sh                      text eol=lf
+Dockerfile                text eol=lf
+**/Dockerfile             text eol=lf
+*.Dockerfile              text eol=lf
+frontend/nginx.conf       text eol=lf
