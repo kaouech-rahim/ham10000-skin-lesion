@@ -1,0 +1,38 @@
+{
+  "n_images": 10015,
+  "n_lesions": 7470,
+  "per_split": {
+    "train": 7153,
+    "val": 1431,
+    "test": 1431
+  },
+  "per_class": {
+    "train": {
+      "akiec": 234,
+      "bcc": 366,
+      "bkl": 785,
+      "df": 82,
+      "mel": 795,
+      "nv": 4789,
+      "vasc": 102
+    },
+    "val": {
+      "akiec": 47,
+      "bcc": 74,
+      "bkl": 157,
+      "df": 16,
+      "mel": 159,
+      "nv": 958,
+      "vasc": 20
+    },
+    "test": {
+      "akiec": 46,
+      "bcc": 74,
+      "bkl": 157,
+      "df": 17,
+      "mel": 159,
+      "nv": 958,
+      "vasc": 20
+    }
+  }
+}

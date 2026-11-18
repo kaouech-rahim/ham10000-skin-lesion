@@ -12,6 +12,10 @@ mlruns/
 mlflow_data/
 mlflow.db
 
+# Exports d'entraînement (archives de runs, 200-280 Mo) : trop lourds pour Git
+# (limite GitHub : 100 Mo/fichier). On garde les petits fichiers (png, csv).
+/exports/*.zip
+
 # Python
 __pycache__/
 *.py[cod]

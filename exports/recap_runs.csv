@@ -1,0 +1,10 @@
+run,modèle,perte,taille,val_bal_acc,test_bal_acc,test_f1,test_rappel_mel,latence_ms
+convnext-focal,convnext_tiny,focal,300,0.846,0.7882,0.7343,0.7123,94.9662
+effnetv2-wce,efficientnetv2_rw_s,weighted_ce,300,0.8058,0.7675,0.6818,0.7055,66.6203
+effnetv2-focal-224,efficientnetv2_rw_s,focal,224,0.7964,0.7708,0.6209,0.6096,39.0821
+effnetv2-focal-384,efficientnetv2_rw_s,focal,384,0.7914,0.7569,0.6814,0.7534,103.932
+effnetv2-focal,efficientnetv2_rw_s,focal,300,0.7892,0.752,0.6753,0.6986,65.409
+effnetv2-ce,efficientnetv2_rw_s,ce,300,0.7555,0.654,0.677,0.5342,122.1166
+baseline-resnet50-lr1e-3,resnet50,ce,300,0.7374,0.6705,0.6676,0.4315,69.6113
+baseline-resnet50,resnet50,ce,300,0.5816,0.5487,0.5868,0.3493,69.1828
+resnet50-scratch,resnet50,ce,300,0.4279,0.4424,0.4537,0.5479,68.6711

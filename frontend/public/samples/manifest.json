@@ -1,0 +1,72 @@
+[
+  {
+    "file": "akiec_ISIC_0024539.jpg",
+    "label": "akiec",
+    "label_name": "Kératose actinique / carcinome intraépithélial (Bowen)"
+  },
+  {
+    "file": "akiec_ISIC_0026203.jpg",
+    "label": "akiec",
+    "label_name": "Kératose actinique / carcinome intraépithélial (Bowen)"
+  },
+  {
+    "file": "bcc_ISIC_0031749.jpg",
+    "label": "bcc",
+    "label_name": "Carcinome basocellulaire"
+  },
+  {
+    "file": "bcc_ISIC_0030249.jpg",
+    "label": "bcc",
+    "label_name": "Carcinome basocellulaire"
+  },
+  {
+    "file": "bkl_ISIC_0028309.jpg",
+    "label": "bkl",
+    "label_name": "Lésion kératosique bénigne"
+  },
+  {
+    "file": "bkl_ISIC_0033486.jpg",
+    "label": "bkl",
+    "label_name": "Lésion kératosique bénigne"
+  },
+  {
+    "file": "df_ISIC_0034169.jpg",
+    "label": "df",
+    "label_name": "Dermatofibrome"
+  },
+  {
+    "file": "df_ISIC_0032941.jpg",
+    "label": "df",
+    "label_name": "Dermatofibrome"
+  },
+  {
+    "file": "mel_ISIC_0032684.jpg",
+    "label": "mel",
+    "label_name": "Mélanome"
+  },
+  {
+    "file": "mel_ISIC_0029652.jpg",
+    "label": "mel",
+    "label_name": "Mélanome"
+  },
+  {
+    "file": "nv_ISIC_0032251.jpg",
+    "label": "nv",
+    "label_name": "Nævus mélanocytaire"
+  },
+  {
+    "file": "nv_ISIC_0028953.jpg",
+    "label": "nv",
+    "label_name": "Nævus mélanocytaire"
+  },
+  {
+    "file": "vasc_ISIC_0031648.jpg",
+    "label": "vasc",
+    "label_name": "Lésion vasculaire"
+  },
+  {
+    "file": "vasc_ISIC_0029099.jpg",
+    "label": "vasc",
+    "label_name": "Lésion vasculaire"
+  }
+]

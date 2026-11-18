@@ -36,3 +36,119 @@ stages:
       hash: md5
       md5: 4a8779383d41f25cfd32b7bbb91ab76d
       size: 610
+  train:
+    cmd: python -m src.models.train
+    deps:
+    - path: data/processed/images
+      hash: md5
+      md5: 596a7726fca7165a70bc5b60c100e301.dir
+      size: 509923455
+      nfiles: 10015
+    - path: data/processed/splits.csv
+      hash: md5
+      md5: 328af771a80e567ab359d4bf968bd14e
+      size: 889497
+    - path: src/data/dataset.py
+      hash: md5
+      md5: 6227bda6a3acb71b07909f18b9597eb1
+      size: 3606
+    - path: src/models/architecture.py
+      hash: md5
+      md5: 5d532c4fd8ceb72b11866dde9e805660
+      size: 2632
+    - path: src/models/losses.py
+      hash: md5
+      md5: 2457b7f19d7652677ece54b157c8203f
+      size: 2407
+    - path: src/models/train.py
+      hash: md5
+      md5: c9e2dccbe979ebcbcecd787275dbff4f
+      size: 9002
+    params:
+      params.yaml:
+        model:
+          name: efficientnetv2_rw_s
+          pretrained: true
+          drop_rate: 0.3
+          drop_path_rate: 0.1
+        seed: 42
+        train:
+          img_size: 300
+          batch_size: 32
+          epochs: 30
+          freeze_epochs: 3
+          lr: 0.0003
+          backbone_lr_mult: 0.1
+          weight_decay: 0.0001
+          warmup_epochs: 1
+          loss: focal
+          focal_gamma: 2.0
+          label_smoothing: 0.0
+          sampler: none
+          randaugment: true
+          mixup_alpha: 0.2
+          cutmix_alpha: 1.0
+          mix_prob: 0.5
+          early_stopping_patience: 7
+          num_workers: 4
+          amp: true
+    outs:
+    - path: models/best.pt
+      hash: md5
+      md5: dfe6efd8eac5b16cb7607537c23e0b15
+      size: 111361887
+    - path: models/run_id.txt
+      hash: md5
+      md5: 86d5f47ade790b824d2754528e7e6673
+      size: 32
+    - path: models/train_metrics.json
+      hash: md5
+      md5: b71350431d40f4d6c204dcc5d84420db
+      size: 446
+  evaluate:
+    cmd: python -m src.models.evaluate
+    deps:
+    - path: data/processed/splits.csv
+      hash: md5
+      md5: 328af771a80e567ab359d4bf968bd14e
+      size: 889497
+    - path: models/best.pt
+      hash: md5
+      md5: dfe6efd8eac5b16cb7607537c23e0b15
+      size: 111361887
+    - path: src/models/evaluate.py
+      hash: md5
+      md5: f024dbc335534044f970b323bd92ca58
+      size: 10622
+    - path: src/utils/gradcam.py
+      hash: md5
+      md5: c74073d97f98204d5ff5d4e5e86c5759
+      size: 3818
+    params:
+      params.yaml:
+        export:
+          opset: 17
+          quantize_int8: true
+          calibration_samples: 200
+          benchmark_runs: 50
+    outs:
+    - path: models/metadata.json
+      hash: md5
+      md5: 8b0633607ec967c271e1b6c51ac25baa
+      size: 2514
+    - path: models/model.onnx
+      hash: md5
+      md5: acda5b7f8cacc827a1df961daf1d5314
+      size: 111384480
+    - path: models/model_fp16.onnx
+      hash: md5
+      md5: 42f27675be5d0def1c6617eb6adc04fd
+      size: 55764415
+    - path: models/model_int8.onnx
+      hash: md5
+      md5: 960456d118202f68fe843dac65359ed2
+      size: 105920693
+    - path: models/test_metrics.json
+      hash: md5
+      md5: 74bedead47c2c66c15e1e251819d7de6
+      size: 1016
